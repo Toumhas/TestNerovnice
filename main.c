@@ -22,12 +22,12 @@ typedef struct{
 }TRadaIntervalu;
 //Seznam všech intervalů pro daný příklad, obsahuje pole typu intervalů a pocet intervalů zapsaných do pole
 
-float horner(Tpolynom * polynom, float bod)
+float horner(Tpolynom polynom, float bod)
 {
-    float vysledek = polynom->koeficient[0];
-    for(int i = 1; i<polynom->pocet; i++)
+    float vysledek = polynom.koeficient[0];
+    for(int i = 1; i<polynom.pocet; i++)
     {
-        vysledek = (vysledek*bod)+polynom->koeficient[i];
+        vysledek = (vysledek*bod)+polynom.koeficient[i];
     }
     return vysledek;
 }
@@ -69,8 +69,9 @@ int strVytahnoutCislaFloat(char string[])
     cislo[cisloI] = '\0';
     return (float)atof(cislo);
 }
+////Oseka string, vytáhne z něho všechny čísla a udělá z něho normální float
 
-float loadSoubor(char pathSoubor[], TRadaIntervalu * radaI, Tpolynom * polynom, Tpolynom * derivacePolynom)
+float loadSoubor(char pathSoubor[], TRadaIntervalu * radaIinter, TRadaIntervalu * radaIextra, Tpolynom * polynom, Tpolynom * derivacePolynom)
 {
     FILE * f = fopen(pathSoubor, "r");
     if(f == NULL)
@@ -93,25 +94,69 @@ float loadSoubor(char pathSoubor[], TRadaIntervalu * radaI, Tpolynom * polynom, 
         fscanf(f, "%f,", &derivacePolynom->koeficient[i]);
     }
     fscanf(f, "%s", pom1);
-    radaI->pocet = strVytahnoutCislaInt(pom1);
-    for(int i = 0; i<radaI->pocet; i++)
+    radaIinter->pocet = strVytahnoutCislaInt(pom1);
+    for(int i = 0; i<radaIinter->pocet; i++)
     {
         fscanf(f, "%s%s", pom1, pom2);
-        radaI->interval[i].a = strVytahnoutCislaFloat(pom1);
-        radaI->interval[i].b = strVytahnoutCislaFloat(pom2);
+        radaIinter->interval[i].a = strVytahnoutCislaFloat(pom1);
+        radaIinter->interval[i].b = strVytahnoutCislaFloat(pom2);
     }
-    printf("%f", radaI->interval[0].a);
+    fscanf(f, "%s", pom1);
+    radaIextra->pocet = strVytahnoutCislaInt(pom1);
+    for(int i = 0; i<radaIextra->pocet; i++)
+    {
+        fscanf(f, "%s%s", pom1, pom2);
+        radaIextra->interval[i].a = strVytahnoutCislaFloat(pom1);
+        radaIextra->interval[i].b = strVytahnoutCislaFloat(pom2);
+    }
+    return presnost;
+}
+
+float regulaFalsi(Tpolynom polynom, Tinterval interval, float epsilon)
+{
+    float a = interval.a;
+    float b = interval.b;
+    float fa = horner(polynom, a);
+    float fb = horner(polynom, b);
+    //printf("fa: %f, fb: %f\n", fa, fb);
+    float c=0;
+    float fc=0;
+    if (fa * fb > 0)
+    {
+        return 0;
+    }
+    do
+    {
+
+        c=(a*fb - b*fa)/(fb-fa);
+        fc=horner(polynom, c);
+        //printf("fc: %f\n", fc);
+        if(fc*fa<0)
+        {
+            b=c;
+            fb=fc;
+        }
+        else
+        {
+            a=c;
+            fa=fc;
+        }
+
+    } while (fabs(fc)>epsilon);
+    return c;
 }
 
 int main()
 {
     Tpolynom * polynom = malloc(sizeof(Tpolynom));
     Tpolynom * derPolynom = malloc(sizeof(Tpolynom));
-    TRadaIntervalu * radaI = malloc(sizeof(TRadaIntervalu));
+    TRadaIntervalu * radaIinter = malloc(sizeof(TRadaIntervalu));
+    TRadaIntervalu * radaIextra = malloc(sizeof(TRadaIntervalu));
     printf("Zadejte jmeno souboru, ze ktereho chcete vzit priklad:\n");
     char cesta[100];
-    scanf("%99s", cesta);
-    float presnost = loadSoubor(cesta, radaI, polynom, derPolynom);
-    printf("\n%f", horner(polynom, 3));
+    //scanf("%99s", cesta);
+    float presnost = loadSoubor(/*cesta*/"input.txt", radaIinter, radaIextra, polynom, derPolynom);
+    printf("\n%f", horner(*polynom, 3));
+    printf("\n%f", regulaFalsi(*polynom, radaIinter->interval[0], presnost));
     return 0;
 }
