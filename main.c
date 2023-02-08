@@ -109,8 +109,10 @@ float loadSoubor(char pathSoubor[], TRadaIntervalu * radaIinter, TRadaIntervalu 
         radaIextra->interval[i].a = strVytahnoutCislaFloat(pom1);
         radaIextra->interval[i].b = strVytahnoutCislaFloat(pom2);
     }
+    fclose(f);
     return presnost;
 }
+//Vetsina z toho bude od Martase poskytnuta, jenom to musite poskladat. Sorry not sorry. Tady mate jak by to vypadalo kdybyste si to delali sami
 
 float regulaFalsi(Tpolynom polynom, Tinterval interval, float epsilon)
 {
@@ -145,6 +147,94 @@ float regulaFalsi(Tpolynom polynom, Tinterval interval, float epsilon)
     } while (fabs(fc)>epsilon);
     return c;
 }
+//Vysvetlovat tyhle algoritmy nebudu, vpodstate jsou vsechny tri stejny a meni se v nich jen kousek, kdyztak Martasova presentation
+
+float bisekce(Tpolynom polynom, Tinterval interval, float epsilon)
+{
+    float a = interval.a;
+    float b = interval.b;
+    float fa = horner(polynom, a);
+    float fb = horner(polynom, b);
+    float c=0;
+    float fc=0;
+    if (fa * fb > 0)
+    {
+        return 0;
+    }
+    do
+    {
+
+        c=(a+b)/2;
+        fc=horner(polynom, c);
+        if(fc*fa<0)
+        {
+            b=c;
+            fb=fc;
+        }
+        else
+        {
+            a=c;
+            fa=fc;
+        }
+
+    } while (fabs(fc)>epsilon);
+    return c;
+}
+
+float secny(Tpolynom polynom, Tinterval interval, float epsilon)
+{
+    float a = interval.a;
+    float b = interval.b;
+    float fa = horner(polynom, a);
+    float fb = horner(polynom, b);
+    float c=0;
+    float fc=0;
+    if (fa * fb > 0)
+    {
+        return 0;
+    }
+    c=(a*fb - b*fa)/(fb-fa);
+    fc=horner(polynom, c);
+    int i = 0;
+    while (i<1000 && fabs(fc)>epsilon)
+    {
+        i++;
+        a=b;
+        fa=fb;
+        b=c;
+        fb=fc;
+        c=(a*fb - b*fa)/(fb-fa);
+        fc=horner(polynom, c);
+    }
+    return c;
+}
+
+float newtonVzorec(float xPred, Tpolynom polynom, Tpolynom polynomDerivace) {
+    float xNov = xPred - (horner(polynom, xPred) / horner(polynomDerivace, xPred));
+    return xNov;
+}
+//Pomocna funkce se vzorcem pro newtonovu metodu
+
+float newton(float x, Tpolynom polynom, Tpolynom polynomDerivace, float epsilon) {
+    int iterationOut = 1000;
+    while (fabsf(horner(polynom, x)) > epsilon) {
+        if (iterationOut < 0) {
+            return 0;
+        }
+
+        x = newtonVzorec(x, polynom, polynomDerivace);
+        iterationOut--;
+    }
+
+    return x;
+}
+//Omlouvam se ale zatim newtonovu metodu nechapu, dopisu az mi to nejaky chytry soudruh vysvetli
+
+bool zapsatDoSouboru(char path[], Tpolynom polynom, Tpolynom derPolynom, TRadaIntervalu radaI)
+{
+
+}
+//Jeste nemam ale vpodstate jen doplneni funkci co jsou ted v mainu a zapsani do souboru
 
 int main()
 {
@@ -153,10 +243,18 @@ int main()
     TRadaIntervalu * radaIinter = malloc(sizeof(TRadaIntervalu));
     TRadaIntervalu * radaIextra = malloc(sizeof(TRadaIntervalu));
     printf("Zadejte jmeno souboru, ze ktereho chcete vzit priklad:\n");
-    char cesta[100];
-    //scanf("%99s", cesta);
-    float presnost = loadSoubor(/*cesta*/"input.txt", radaIinter, radaIextra, polynom, derPolynom);
-    printf("\n%f", horner(*polynom, 3));
-    printf("\n%f", regulaFalsi(*polynom, radaIinter->interval[0], presnost));
+    char path[100];
+    scanf("%99s", path);
+    float presnost = loadSoubor(path, radaIinter, radaIextra, polynom, derPolynom);
+    printf("\n%0.3f", regulaFalsi(*polynom, radaIinter->interval[0], presnost));
+    printf("\n%0.3f", bisekce(*polynom, radaIinter->interval[0], presnost));
+    printf("\n%0.3f", secny(*polynom, radaIinter->interval[0], presnost));
+    printf("\n%0.3f", newton(radaIinter->interval[0].a, *polynom, *derPolynom, presnost));
+    zapsatDoSouboru(path, *polynom, *derPolynom, *radaIinter);
+    free(polynom);
+    free(derPolynom);
+    free(radaIinter);
+    free(radaIextra);
     return 0;
 }
+//Alokace na testu zarizena martasem a zkouska funkci zhora, ktera bude ve funkci zapsatDoSouboru
