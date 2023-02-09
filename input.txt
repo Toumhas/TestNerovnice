@@ -2,5 +2,5 @@ zadani[Funkce1]
 presnost: 0.001
 koeficienty[4]: 6, 4, -7, -2,
 derivace[3]: 18, 8, -7,
-interintervaly[3]: {-2, -1}, {-1, 0}, {0, 2},
+interintervaly[3]: {-2, -1}, {-1, 0}, {-0.5, 0.5},
 extraintervaly[3]: {-2, -2.1}, {0.5, 0.6}, {1, 1.5},

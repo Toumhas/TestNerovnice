@@ -83,6 +83,7 @@ float loadSoubor(char pathSoubor[], TRadaIntervalu * radaIinter, TRadaIntervalu 
     fscanf(f, "%s\n%s%f\n", nadpis, pom1, &presnost);
     fscanf(f, "%s", pom1);
     polynom->pocet = strVytahnoutCislaInt(pom1);
+    //printf("%d\n\n", polynom->pocet);
     for(int i = 0; i<polynom->pocet; i++)
     {
         fscanf(f, "%f,", &polynom->koeficient[i]);
@@ -209,12 +210,6 @@ float secny(Tpolynom polynom, Tinterval interval, float epsilon)
     return c;
 }
 
-float newtonVzorec(float xPred, Tpolynom polynom, Tpolynom polynomDerivace) {
-    float xNov = xPred - (horner(polynom, xPred) / horner(polynomDerivace, xPred));
-    return xNov;
-}
-//Pomocna funkce se vzorcem pro newtonovu metodu
-
 float newton(float x, Tpolynom polynom, Tpolynom polynomDerivace, float epsilon) {
     int iterationOut = 1000;
     while (fabsf(horner(polynom, x)) > epsilon) {
@@ -222,7 +217,7 @@ float newton(float x, Tpolynom polynom, Tpolynom polynomDerivace, float epsilon)
             return 0;
         }
 
-        x = newtonVzorec(x, polynom, polynomDerivace);
+        x = x - (horner(polynom, x) / horner(polynomDerivace, x));
         iterationOut--;
     }
 

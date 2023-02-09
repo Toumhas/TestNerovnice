@@ -1,0 +1,6 @@
+zadani[Funkce2]
+presnost: 0.0001
+koeficienty[6]: -1, -0.5, +15, +8, -12, -2,
+derivace[5]: -5, -2, +45, +16, -12,
+interintervaly[5]: {-4, -2}, {-2, -0.5}, {0, 2},
+extraintervaly[3]: {-4, -4.5}, {0.5, 0.6}, {1, 1.5},
